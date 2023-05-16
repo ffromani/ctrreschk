@@ -4,9 +4,13 @@ metadata:
   name: dpdk-network-1
   namespace: openshift-sriov-network-operator
 spec:
-  ipam: '{"type": "host-local","ranges": [[{"subnet": "10.0.1.0/24"}]],"dataDir": "/run/my-orchestrator/container-ipam-state-1"}'
-  networkNamespace: devaccess
-  spoofChk: "on"
-  trust: "on"
+  ipam: |-
+    {
+      "type": "host-local",
+      "subnet": "10.56.217.0/24",
+      "rangeStart": "10.56.217.171",
+      "rangeEnd": "10.56.217.181",
+      "gateway": "10.56.217.1"
+    }
   resourceName: dpdk_nic_1
-
+  networkNamespace: devaccess

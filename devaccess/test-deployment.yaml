@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-deployment
+  namespace: devaccess
+  labels:
+    app: test 
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: test 
+  template:
+    metadata:
+      annotations:
+        k8s.v1.cni.cncf.io/networks: '[{"name": "dpdk-network-1", "namespace": "devaccess" }, {"name": "dpdk-network-1", "namespace": "devaccess" }]'
+      labels:
+        app: test
+    spec:
+      containers:
+        image: quay.io/fromani/devaccess:2023051001
+        imagePullPolicy: Always
+        name: devaccess-container
+        resources:
+          limits:
+            cpu: "2" 
+            memory: 512Mi
+            openshift.io/dpdk_nic_1: "2"
+          requests:
+            cpu: "2" 
+            memory: 512Mi
+            openshift.io/dpdk_nic_1: "2"
+        securityContext:
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+            type: RuntimeDefault
+          allowPrivilegeEscalation: false
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true

@@ -6,10 +6,20 @@ metadata:
 spec:
   deviceType: vfio-pci
   nicSelector:
-    pfNames: ["ens3f0#0-4"]
+    # To determine the vendor ID, device ID and associated PCI address run the following command:
+    # $ cat /sys/class/net/eno1/device/uevent
+    # DRIVER=mlx5_core
+    # PCI_CLASS=20000
+    # PCI_ID=15B3:1015
+    # PCI_SUBSYS_ID=15B3:0025
+    # PCI_SLOT_NAME=0000:19:00.0
+    # MODALIAS=pci:v000015B3d00001015sv000015B3sd00000025bc02sc00i00
+    vendor: "15b3"
+    deviceID: "1015"
+    pfNames: ["eno1","eno2"]
+    rootDevices: ["0000:19:00.0", "0000:19:00.1"]
   nodeSelector:
     kubernetes.io/hostname: FIXME
-  numVfs: 32 # the more the better
+  numVfs: 32 # These are number of VFs per PF ; the more the better for this test
   priority: 99
   resourceName: dpdk_nic_1
-
