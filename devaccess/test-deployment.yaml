@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test-deployment
+  name: devaccess-deployment
   namespace: devaccess
   labels:
-    app: test 
+    app: devaccess
 spec:
   replicas: 1 
   selector:
     matchLabels:
-      app: test 
+      app: devaccess
   template:
     metadata:
       annotations:
         k8s.v1.cni.cncf.io/networks: '[{"name": "dpdk-network-1", "namespace": "devaccess" }, {"name": "dpdk-network-1", "namespace": "devaccess" }]'
       labels:
-        app: test
+        app: devaccess
     spec:
       containers:
         image: quay.io/fromani/devaccess:2023051001
