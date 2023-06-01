@@ -13,7 +13,9 @@ fi
 # ok, now we can check the real device access.
 # 1. find all the <vfid>s allocated to the container.
 #  Provided by the sriov device plugin, this will be a comma separated PCI address list
-PCIDEVS=$( env | grep PCIDEVICE | cut -d\= -f2 )
+#  Starting OCP >= 4.13 the SRIOV device plugin is also exporting device info as JSON snippet.
+#  We need to avoid that because it confuses our logic.
+PCIDEVS=$( env | grep PCIDEVICE | grep -v '_INFO=' | cut -d\= -f2 )
 # hold on just a sec: did we got any allocated devices at all?
 if [ -z "${PCIDEVS}" ]; then
 	exit 4
