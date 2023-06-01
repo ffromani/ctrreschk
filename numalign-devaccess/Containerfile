@@ -1,0 +1,4 @@
+FROM registry.access.redhat.com/ubi8/ubi
+COPY numalign /bin/numalign
+COPY entrypoint.sh /bin/devaccess
+ENTRYPOINT ["/bin/devaccess"]
