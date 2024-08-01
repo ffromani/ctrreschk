@@ -17,23 +17,22 @@
 package resources
 
 import (
-	"log"
-
 	"k8s.io/utils/cpuset"
 
 	"github.com/ffromani/ctrreschk/internal/cgroups"
+	"github.com/ffromani/ctrreschk/pkg/environ"
 )
 
 type Resources struct {
 	CPUs cpuset.CPUSet
 }
 
-func Discover() (Resources, error) {
+func Discover(env *environ.Environ) (Resources, error) {
 	cpus, err := cgroups.Cpuset()
 	if err != nil {
 		return Resources{}, err
 	}
-	log.Printf("detected cpus: %v", cpus)
+	env.Log.V(2).Info("detected resources", "cpus", cpus)
 	return Resources{
 		CPUs: cpus,
 	}, nil

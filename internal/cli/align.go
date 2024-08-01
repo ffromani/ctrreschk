@@ -23,26 +23,27 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/ffromani/ctrreschk/pkg/align"
+	"github.com/ffromani/ctrreschk/pkg/environ"
 	"github.com/ffromani/ctrreschk/pkg/machine"
 	"github.com/ffromani/ctrreschk/pkg/resources"
 )
 
 type AlignOptions struct{}
 
-func NewAlignCommand(opts *Options) *cobra.Command {
+func NewAlignCommand(env *environ.Environ, opts *Options) *cobra.Command {
 	alignCmd := &cobra.Command{
 		Use:   "align",
 		Short: "show resource alignment properties",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			container, err := resources.Discover()
+			container, err := resources.Discover(env)
 			if err != nil {
 				return err
 			}
-			machine, err := machine.Discover()
+			machine, err := machine.Discover(env)
 			if err != nil {
 				return err
 			}
-			result, err := align.Check(container, machine)
+			result, err := align.Check(env, container, machine)
 			if err != nil {
 				return err
 			}
@@ -50,10 +51,7 @@ func NewAlignCommand(opts *Options) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if opts.Oneshot {
-				return nil
-			}
-			return MainLoop()
+			return MainLoop(opts)
 		},
 		Args: cobra.NoArgs,
 	}

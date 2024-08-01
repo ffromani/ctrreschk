@@ -3,6 +3,8 @@ module github.com/ffromani/ctrreschk
 go 1.22.5
 
 require (
+	github.com/go-logr/logr v1.2.2
+	github.com/go-logr/stdr v1.2.2
 	github.com/jaypipes/ghw v0.12.0
 	github.com/spf13/cobra v1.8.1
 	k8s.io/utils v0.0.0-20240711033017-18e509b52bc8

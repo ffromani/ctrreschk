@@ -14,24 +14,22 @@
  * limitations under the License.
  */
 
-package machine
+package environ
 
 import (
-	"github.com/ffromani/ctrreschk/pkg/environ"
-	"github.com/jaypipes/ghw/pkg/topology"
+	"log"
+	"os"
+
+	"github.com/go-logr/logr"
+	"github.com/go-logr/stdr"
 )
 
-type Machine struct {
-	Topology *topology.Info
+type Environ struct {
+	Log logr.Logger
 }
 
-func Discover(env *environ.Environ) (Machine, error) {
-	info, err := topology.New()
-	if err != nil {
-		return Machine{}, err
+func New() *Environ {
+	return &Environ{
+		Log: stdr.New(log.New(os.Stderr, "", log.LstdFlags)),
 	}
-	env.Log.V(2).Info("detected machine", "topology", info)
-	return Machine{
-		Topology: info,
-	}, nil
 }

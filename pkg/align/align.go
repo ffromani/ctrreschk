@@ -18,10 +18,11 @@ package align
 
 import (
 	apiv1 "github.com/ffromani/ctrreschk/api/v1"
+	"github.com/ffromani/ctrreschk/pkg/environ"
 	"github.com/ffromani/ctrreschk/pkg/machine"
 	"github.com/ffromani/ctrreschk/pkg/resources"
 )
 
-func Check(container resources.Resources, machine machine.Machine) (apiv1.Allocation, error) {
+func Check(env *environ.Environ, container resources.Resources, machine machine.Machine) (apiv1.Allocation, error) {
 	return apiv1.Allocation{}, nil
 }

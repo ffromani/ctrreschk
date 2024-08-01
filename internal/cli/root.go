@@ -22,12 +22,15 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/go-logr/stdr"
 	"github.com/spf13/cobra"
+
+	"github.com/ffromani/ctrreschk/pkg/environ"
 )
 
 type Options struct {
-	Verbose int
-	Oneshot bool
+	Verbose      int
+	SleepForever bool
 }
 
 func ShowHelp(cmd *cobra.Command, args []string) error {
@@ -38,12 +41,17 @@ func ShowHelp(cmd *cobra.Command, args []string) error {
 type NewCommandFunc func(ko *Options) *cobra.Command
 
 // NewRootCommand returns entrypoint command to interact with all other commands
-func NewRootCommand(extraCmds ...NewCommandFunc) *cobra.Command {
+func NewRootCommand(env *environ.Environ, extraCmds ...NewCommandFunc) *cobra.Command {
 	opts := Options{}
 
 	root := &cobra.Command{
 		Use:   "ctrreschk",
 		Short: "ctrreschk inspects the resources actually allocated to a container",
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			// this MUST be the first thing we do
+			stdr.SetVerbosity(opts.Verbose)
+			return nil
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return ShowHelp(cmd, args)
 		},
@@ -51,11 +59,11 @@ func NewRootCommand(extraCmds ...NewCommandFunc) *cobra.Command {
 		SilenceErrors: true,
 	}
 
-	root.PersistentFlags().BoolVarP(&opts.Oneshot, "oneshot", "s", false, "report resources and exit immediately instead of running forever")
+	root.PersistentFlags().BoolVarP(&opts.SleepForever, "sleepforever", "S", false, "run and sleep forever after executing the command")
 	root.PersistentFlags().IntVarP(&opts.Verbose, "verbose", "v", 0, "log verbosity")
 
 	root.AddCommand(
-		NewAlignCommand(&opts),
+		NewAlignCommand(env, &opts),
 	)
 	for _, extraCmd := range extraCmds {
 		root.AddCommand(extraCmd(&opts))
@@ -64,7 +72,10 @@ func NewRootCommand(extraCmds ...NewCommandFunc) *cobra.Command {
 	return root
 }
 
-func MainLoop() error {
+func MainLoop(opts *Options) error {
+	if !opts.SleepForever {
+		return nil
+	}
 	exitSignal := make(chan os.Signal, 1)
 	signal.Notify(exitSignal, syscall.SIGINT, syscall.SIGTERM)
 	<-exitSignal

@@ -21,10 +21,11 @@ import (
 	"os"
 
 	"github.com/ffromani/ctrreschk/internal/cli"
+	"github.com/ffromani/ctrreschk/pkg/environ"
 )
 
 func main() {
-	root := cli.NewRootCommand()
+	root := cli.NewRootCommand(environ.New())
 	if err := root.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
