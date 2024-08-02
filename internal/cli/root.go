@@ -64,6 +64,7 @@ func NewRootCommand(env *environ.Environ, extraCmds ...NewCommandFunc) *cobra.Co
 
 	root.AddCommand(
 		NewAlignCommand(env, &opts),
+		NewInfoCommand(env, &opts),
 	)
 	for _, extraCmd := range extraCmds {
 		root.AddCommand(extraCmd(&opts))

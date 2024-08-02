@@ -18,20 +18,31 @@ package machine
 
 import (
 	"github.com/ffromani/ctrreschk/pkg/environ"
+	"github.com/jaypipes/ghw/pkg/cpu"
 	"github.com/jaypipes/ghw/pkg/topology"
 )
 
 type Machine struct {
+	CPU      *cpu.Info
 	Topology *topology.Info
 }
 
 func Discover(env *environ.Environ) (Machine, error) {
-	info, err := topology.New()
+	mc := Machine{}
+
+	cpu, err := cpu.New()
 	if err != nil {
-		return Machine{}, err
+		return mc, err
 	}
-	env.Log.V(2).Info("detected machine", "topology", info)
-	return Machine{
-		Topology: info,
-	}, nil
+	mc.CPU = cpu
+	env.Log.V(2).Info("detected machine", "CPU", cpu)
+
+	topo, err := topology.New()
+	if err != nil {
+		return mc, err
+	}
+	mc.Topology = topo
+	env.Log.V(2).Info("detected machine", "topology", topo)
+
+	return mc, nil
 }
