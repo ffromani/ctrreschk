@@ -24,7 +24,7 @@ import (
 
 	"github.com/jaypipes/ghw/pkg/topology"
 
-	apiv1 "github.com/ffromani/ctrreschk/api/v1"
+	apiv0 "github.com/ffromani/ctrreschk/api/v0"
 	"github.com/ffromani/ctrreschk/pkg/environ"
 	"github.com/ffromani/ctrreschk/pkg/machine"
 	"github.com/ffromani/ctrreschk/pkg/resources"
@@ -95,11 +95,11 @@ func makeRMap(topo *topology.Info) rMap {
 	return res
 }
 
-func Check(env *environ.Environ, container resources.Resources, machine machine.Machine) (apiv1.Allocation, error) {
+func Check(env *environ.Environ, container resources.Resources, machine machine.Machine) (apiv0.Allocation, error) {
 	rmap := makeRMap(machine.Topology)
 	env.Log.V(2).Info("reverse mapping", "rmap", rmap)
 
-	resp := apiv1.Allocation{}
+	resp := apiv0.Allocation{}
 
 	// TODO: SMT
 	checkLLC(env, &resp, container.CPUs.Clone(), rmap)
@@ -108,7 +108,7 @@ func Check(env *environ.Environ, container resources.Resources, machine machine.
 	return resp, nil
 }
 
-func checkLLC(env *environ.Environ, resp *apiv1.Allocation, cores cpuset.CPUSet, rmap rMap) {
+func checkLLC(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet, rmap rMap) {
 	for llcID := range rmap.llc {
 		if cores.Size() <= 0 {
 			break
@@ -116,7 +116,7 @@ func checkLLC(env *environ.Environ, resp *apiv1.Allocation, cores cpuset.CPUSet,
 		llcCores := rmap.llc.CPUSet(llcID)
 		thisLLCSubset := cores.Intersection(llcCores)
 		if resp.Aligned == nil {
-			resp.Aligned = apiv1.NewAlignedInfo()
+			resp.Aligned = apiv0.NewAlignedInfo()
 		}
 		dets := resp.Aligned.LLC[llcID]
 		dets.CPUs = thisLLCSubset.List()
@@ -128,13 +128,13 @@ func checkLLC(env *environ.Environ, resp *apiv1.Allocation, cores cpuset.CPUSet,
 	resp.Alignment.LLC = cores.IsEmpty()
 	if !resp.Alignment.LLC {
 		if resp.Unaligned == nil {
-			resp.Unaligned = &apiv1.UnalignedInfo{}
+			resp.Unaligned = &apiv0.UnalignedInfo{}
 		}
 		resp.Unaligned.LLC.CPUs = cores.List()
 	}
 }
 
-func checkNUMA(env *environ.Environ, resp *apiv1.Allocation, cores cpuset.CPUSet, rmap rMap) {
+func checkNUMA(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet, rmap rMap) {
 	for numaID := range rmap.numa {
 		if cores.Size() <= 0 {
 			break
@@ -142,7 +142,7 @@ func checkNUMA(env *environ.Environ, resp *apiv1.Allocation, cores cpuset.CPUSet
 		numaCores := rmap.numa.CPUSet(numaID)
 		thisNUMASubset := cores.Intersection(numaCores)
 		if resp.Aligned == nil {
-			resp.Aligned = apiv1.NewAlignedInfo()
+			resp.Aligned = apiv0.NewAlignedInfo()
 		}
 		dets := resp.Aligned.NUMA[numaID]
 		dets.CPUs = thisNUMASubset.List()
@@ -154,7 +154,7 @@ func checkNUMA(env *environ.Environ, resp *apiv1.Allocation, cores cpuset.CPUSet
 	resp.Alignment.NUMA = cores.IsEmpty()
 	if !resp.Alignment.NUMA {
 		if resp.Unaligned == nil {
-			resp.Unaligned = &apiv1.UnalignedInfo{}
+			resp.Unaligned = &apiv0.UnalignedInfo{}
 		}
 		resp.Unaligned.NUMA.CPUs = cores.List()
 	}
