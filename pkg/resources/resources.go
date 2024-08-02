@@ -19,7 +19,7 @@ package resources
 import (
 	"k8s.io/utils/cpuset"
 
-	"github.com/ffromani/ctrreschk/internal/cgroups"
+	"github.com/ffromani/ctrreschk/pkg/cgroups"
 	"github.com/ffromani/ctrreschk/pkg/environ"
 )
 
