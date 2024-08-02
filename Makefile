@@ -8,3 +8,5 @@ outdir:
 ctrreschk: outdir
 	go build -v -o _out/ctrresck cmd/ctrreschk/main.go
 
+clean:
+	@rm -rf _out
