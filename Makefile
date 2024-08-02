@@ -19,7 +19,7 @@ outdir:
 	@mkdir -p _out
 
 ctrreschk: outdir
-	CGO_ENABLED=0 go build -v -o _out/ctrresck cmd/ctrreschk/main.go
+	CGO_ENABLED=0 go build -v -o _out/ctrreschk cmd/ctrreschk/main.go
 
 .PHONY: clean
 clean:
