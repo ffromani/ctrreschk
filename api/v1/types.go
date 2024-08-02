@@ -26,13 +26,27 @@ type ContainerResourcesDetails struct {
 	Devices []string `json:"devices,omitempty"`
 }
 
-type AlignmentDetails struct {
+type AlignedInfo struct {
 	// vcoreid -> resources
 	SMT map[int]ContainerResourcesDetails `json:"smt,omitempty"`
 	// llcid -> resources
 	LLC map[int]ContainerResourcesDetails `json:"llc,omitempty"`
 	// numacellid -> resources
 	NUMA map[int]ContainerResourcesDetails `json:"numa,omitempty"`
+}
+
+func NewAlignedInfo() *AlignedInfo {
+	return &AlignedInfo{
+		SMT:  make(map[int]ContainerResourcesDetails),
+		LLC:  make(map[int]ContainerResourcesDetails),
+		NUMA: make(map[int]ContainerResourcesDetails),
+	}
+}
+
+type UnalignedInfo struct {
+	SMT  ContainerResourcesDetails `json:"smt,omitempty"`
+	LLC  ContainerResourcesDetails `json:"llc,omitempty"`
+	NUMA ContainerResourcesDetails `json:"numa,omitempty"`
 }
 
 type Alignment struct {
@@ -42,7 +56,7 @@ type Alignment struct {
 }
 
 type Allocation struct {
-	Alignment Alignment         `json:"alignment"`
-	Aligned   *AlignmentDetails `json:"aligned,omitempty"`
-	Unaligned *AlignmentDetails `json:"unaligned,omitempty"`
+	Alignment Alignment      `json:"alignment"`
+	Aligned   *AlignedInfo   `json:"aligned,omitempty"`
+	Unaligned *UnalignedInfo `json:"unaligned,omitempty"`
 }
