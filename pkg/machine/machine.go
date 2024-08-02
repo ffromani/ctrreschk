@@ -23,8 +23,8 @@ import (
 )
 
 type Machine struct {
-	CPU      *cpu.Info
-	Topology *topology.Info
+	CPU      *cpu.Info      `json:"cpu"`
+	Topology *topology.Info `json:"topology"`
 }
 
 func Discover(env *environ.Environ) (Machine, error) {
