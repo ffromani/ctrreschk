@@ -2,7 +2,8 @@ VERSION:=v0.0.$(shell date +%Y%m%d)
 IMAGENAME:=ctrreschk
 REGISTRY?=quay.io/fromani
 BUILDID?=01
-IMAGE:=$(REGISTRY)/$(IMAGENAME):$(VERSION)$(BUILDID)
+TAG?=$(VERSION)$(BUILDID)
+IMAGE:=$(REGISTRY)/$(IMAGENAME):$(TAG)
 
 .PHONY: all
 all: build

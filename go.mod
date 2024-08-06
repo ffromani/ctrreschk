@@ -1,6 +1,6 @@
 module github.com/ffromani/ctrreschk
 
-go 1.22.5
+go 1.22
 
 require (
 	github.com/go-logr/logr v1.2.2
