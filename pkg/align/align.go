@@ -45,21 +45,24 @@ func (rm ridMap) String() string {
 	return sb.String()[1:]
 }
 
+// Resource MAPping
 type rMap struct {
-	phys ridMap
-	llc  ridMap
-	numa ridMap
+	cpuLog2Phy map[int]int
+	cpuPhy2Log ridMap
+	llc        ridMap
+	numa       ridMap
 }
 
 func (rm rMap) String() string {
-	return fmt.Sprintf("<phys={%s} llc={%s} numa{%s}>", rm.phys.String(), rm.llc.String(), rm.numa.String())
+	return fmt.Sprintf("<phys=%{s} llc={%s} numa{%s}>", rm.cpuPhy2Log.String(), rm.llc.String(), rm.numa.String())
 }
 
 func newRMap() rMap {
 	return rMap{
-		phys: make(ridMap),
-		llc:  make(ridMap),
-		numa: make(ridMap),
+		cpuLog2Phy: make(map[int]int),
+		cpuPhy2Log: make(ridMap),
+		llc:        make(ridMap),
+		numa:       make(ridMap),
 	}
 }
 
@@ -68,9 +71,12 @@ func makeRMap(topo *topology.Info) rMap {
 	llcID := 0
 	for _, node := range topo.Nodes {
 		for _, core := range node.Cores {
-			phys := res.phys[core.ID]
+			phys := res.cpuPhy2Log[core.ID]
 			phys = append(phys, core.LogicalProcessors...)
-			res.phys[core.ID] = phys
+			res.cpuPhy2Log[core.ID] = phys
+			for _, lid := range core.LogicalProcessors {
+				res.cpuLog2Phy[lid] = core.ID
+			}
 
 			numa := res.numa[node.ID]
 			numa = append(numa, core.LogicalProcessors...)
@@ -101,11 +107,29 @@ func Check(env *environ.Environ, container resources.Resources, machine machine.
 
 	resp := apiv0.Allocation{}
 
-	// TODO: SMT
+	checkSMT(env, &resp, container.CPUs.Clone(), rmap)
 	checkLLC(env, &resp, container.CPUs.Clone(), rmap)
 	checkNUMA(env, &resp, container.CPUs.Clone(), rmap)
 
 	return resp, nil
+}
+
+func checkSMT(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet, rmap rMap) {
+	var coreList []int
+	for _, coreID := range cores.UnsortedList() {
+		phy := rmap.cpuLog2Phy[coreID]
+		coreList = append(coreList, rmap.cpuPhy2Log[phy]...)
+	}
+	computedCores := cpuset.New(coreList...)
+
+	resp.Alignment.SMT = cores.Equals(computedCores)
+	if !resp.Alignment.SMT {
+		if resp.Unaligned == nil {
+			resp.Unaligned = &apiv0.UnalignedInfo{}
+		}
+		// by construction, computedCores is always a superset of cores
+		resp.Unaligned.SMT.CPUs = computedCores.Difference(cores).List()
+	}
 }
 
 func checkLLC(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet, rmap rMap) {
