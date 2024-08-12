@@ -28,12 +28,17 @@ import (
 
 const (
 	CgroupPath = "fs/cgroup"
+	CpusetFile = "cpuset.cpus.effective"
 )
 
+func CpusetPath(env *environ.Environ) string {
+	return filepath.Join(env.Root.Sys, CgroupPath, CpusetFile)
+}
+
 func Cpuset(env *environ.Environ) (cpuset.CPUSet, error) {
-	data, err := os.ReadFile(filepath.Join(env.Root.Sys, CgroupPath, "cpuset.cpus.effective"))
+	data, err := os.ReadFile(CpusetPath(env))
 	if err != nil {
-		return cpuset.New(), nil
+		return cpuset.New(), err
 	}
 	return cpuset.Parse(strings.TrimSpace(string(data)))
 }
