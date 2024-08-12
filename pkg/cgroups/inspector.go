@@ -22,14 +22,16 @@ import (
 	"strings"
 
 	"k8s.io/utils/cpuset"
+
+	"github.com/ffromani/ctrreschk/pkg/environ"
 )
 
 const (
-	SysfsRoot = "/sys/fs/cgroup"
+	CgroupPath = "/sys/fs/cgroup"
 )
 
-func Cpuset() (cpuset.CPUSet, error) {
-	data, err := os.ReadFile(filepath.Join(SysfsRoot, "cpuset.cpus.effective"))
+func Cpuset(env *environ.Environ) (cpuset.CPUSet, error) {
+	data, err := os.ReadFile(filepath.Join(env.Root.Sys, CgroupPath, "cpuset.cpus.effective"))
 	if err != nil {
 		return cpuset.New(), nil
 	}

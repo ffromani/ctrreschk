@@ -28,7 +28,7 @@ type Resources struct {
 }
 
 func Discover(env *environ.Environ) (Resources, error) {
-	cpus, err := cgroups.Cpuset()
+	cpus, err := cgroups.Cpuset(env)
 	if err != nil {
 		return Resources{}, err
 	}

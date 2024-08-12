@@ -24,12 +24,24 @@ import (
 	"github.com/go-logr/stdr"
 )
 
+type FS struct {
+	Sys string
+}
+
+func DefaultFS() FS {
+	return FS{
+		Sys: "/sys",
+	}
+}
+
 type Environ struct {
-	Log logr.Logger
+	Root FS
+	Log  logr.Logger
 }
 
 func New() *Environ {
 	return &Environ{
-		Log: stdr.New(log.New(os.Stderr, "", log.LstdFlags)),
+		Root: DefaultFS(),
+		Log:  stdr.New(log.New(os.Stderr, "", log.LstdFlags)),
 	}
 }
