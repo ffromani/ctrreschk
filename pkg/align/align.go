@@ -54,7 +54,7 @@ type rMap struct {
 }
 
 func (rm rMap) String() string {
-	return fmt.Sprintf("<phys=%{s} llc={%s} numa{%s}>", rm.cpuPhy2Log.String(), rm.llc.String(), rm.numa.String())
+	return fmt.Sprintf("<phys={%s} llc={%s} numa{%s}>", rm.cpuPhy2Log.String(), rm.llc.String(), rm.numa.String())
 }
 
 func newRMap() rMap {
