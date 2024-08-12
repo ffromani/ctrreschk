@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	CgroupPath = "/sys/fs/cgroup"
+	CgroupPath = "fs/cgroup"
 )
 
 func Cpuset(env *environ.Environ) (cpuset.CPUSet, error) {
