@@ -39,9 +39,13 @@ type Environ struct {
 	Log  logr.Logger
 }
 
+func DefaultLog() logr.Logger {
+	return stdr.New(log.New(os.Stderr, "", log.LstdFlags))
+}
+
 func New() *Environ {
 	return &Environ{
 		Root: DefaultFS(),
-		Log:  stdr.New(log.New(os.Stderr, "", log.LstdFlags)),
+		Log:  DefaultLog(),
 	}
 }
