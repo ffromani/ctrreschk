@@ -22,6 +22,13 @@ outdir:
 ctrreschk: outdir
 	CGO_ENABLED=0 go build -v -o _out/ctrreschk cmd/ctrreschk/main.go
 
+test-unit:
+	@go test -v ./api/... ./pkg/... ./internal/...
+
+.PHONY: vet
+vet:
+	go vet ./...
+
 .PHONY: clean
 clean:
 	@rm -rf _out
