@@ -17,6 +17,9 @@
 package machine
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/ffromani/ctrreschk/pkg/environ"
 	"github.com/jaypipes/ghw/pkg/cpu"
 	"github.com/jaypipes/ghw/pkg/topology"
@@ -25,6 +28,12 @@ import (
 type Machine struct {
 	CPU      *cpu.Info      `json:"cpu"`
 	Topology *topology.Info `json:"topology"`
+}
+
+func (ma Machine) ToJSON() (string, error) {
+	var sb strings.Builder
+	err := json.NewEncoder(&sb).Encode(ma)
+	return sb.String(), err
 }
 
 func Discover(env *environ.Environ) (Machine, error) {
@@ -45,4 +54,11 @@ func Discover(env *environ.Environ) (Machine, error) {
 	env.Log.V(2).Info("detected machine", "topology", topo)
 
 	return mc, nil
+}
+
+func FromJSON(data string) (Machine, error) {
+	ma := Machine{}
+	rd := strings.NewReader(data)
+	err := json.NewDecoder(rd).Decode(&ma)
+	return ma, err
 }

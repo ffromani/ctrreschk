@@ -32,3 +32,28 @@ func TestDiscoverFundamentals(t *testing.T) {
 		t.Fatalf("missing expected data in machine info CPU=%v Topology=%v", got.CPU, got.Topology)
 	}
 }
+
+func TestMachineJSONRoundtrip(t *testing.T) {
+	env := environ.New()
+	got, err := Discover(env)
+	if err != nil {
+		t.Fatalf("discover error against real machine: %v", err)
+	}
+
+	refJSON, err := got.ToJSON()
+	if err != nil {
+		t.Fatalf("failed to convert ref to JSON: %v", err)
+	}
+	aux, err := FromJSON(refJSON)
+	if err != nil {
+		t.Fatalf("failed to recover from JSON: %v", err)
+	}
+	auxJSON, err := aux.ToJSON()
+	if err != nil {
+		t.Fatalf("failed to convert aux to JSON: %v", err)
+	}
+
+	if refJSON != auxJSON {
+		t.Errorf("JSON mismatch, Machines are not equal.\nref=%s\naux=%s", refJSON, auxJSON)
+	}
+}

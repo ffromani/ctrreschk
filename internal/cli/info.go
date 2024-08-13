@@ -17,8 +17,7 @@
 package cli
 
 import (
-	"encoding/json"
-	"os"
+	"fmt"
 
 	"github.com/jaypipes/ghw/pkg/topology"
 	"github.com/spf13/cobra"
@@ -40,10 +39,11 @@ func NewInfoCommand(env *environ.Environ, opts *Options) *cobra.Command {
 			}
 			// fixup ghw quirks
 			machine.Topology.Architecture = topology.ARCHITECTURE_NUMA
-			err = json.NewEncoder(os.Stdout).Encode(machine)
+			data, err := machine.ToJSON()
 			if err != nil {
 				return err
 			}
+			fmt.Printf("%s", data)
 			return MainLoop(opts)
 		},
 		Args: cobra.NoArgs,
