@@ -35,14 +35,6 @@ type AlignedInfo struct {
 	NUMA map[int]ContainerResourcesDetails `json:"numa,omitempty"`
 }
 
-func NewAlignedInfo() *AlignedInfo {
-	return &AlignedInfo{
-		SMT:  make(map[int]ContainerResourcesDetails),
-		LLC:  make(map[int]ContainerResourcesDetails),
-		NUMA: make(map[int]ContainerResourcesDetails),
-	}
-}
-
 type UnalignedInfo struct {
 	SMT  ContainerResourcesDetails `json:"smt,omitempty"`
 	LLC  ContainerResourcesDetails `json:"llc,omitempty"`
