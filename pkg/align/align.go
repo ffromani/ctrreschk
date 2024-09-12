@@ -78,7 +78,7 @@ func checkLLC(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet,
 		cores = cores.Difference(thisLLCSubset)
 	}
 
-	resp.Alignment.LLC = cores.IsEmpty()
+	resp.Alignment.LLC = cores.IsEmpty() && (len(rmap.llc) == 1)
 	if !resp.Alignment.LLC {
 		if resp.Unaligned == nil {
 			resp.Unaligned = &apiv0.UnalignedInfo{}
@@ -104,7 +104,7 @@ func checkNUMA(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet
 		cores = cores.Difference(thisNUMASubset)
 	}
 
-	resp.Alignment.NUMA = cores.IsEmpty()
+	resp.Alignment.NUMA = cores.IsEmpty() && (len(rmap.numa) == 1)
 	if !resp.Alignment.NUMA {
 		if resp.Unaligned == nil {
 			resp.Unaligned = &apiv0.UnalignedInfo{}
