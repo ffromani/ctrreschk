@@ -72,13 +72,15 @@ func checkLLC(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet,
 			resp.Aligned = apiv0.NewAlignedInfo()
 		}
 		dets := resp.Aligned.LLC[llcID]
-		dets.CPUs = thisLLCSubset.List()
-		resp.Aligned.LLC[llcID] = dets
+		if cpus := thisLLCSubset.List(); len(cpus) > 0 {
+			dets.CPUs = cpus
+			resp.Aligned.LLC[llcID] = dets
+		}
 
 		cores = cores.Difference(thisLLCSubset)
 	}
 
-	resp.Alignment.LLC = cores.IsEmpty() && (len(rmap.llc) == 1)
+	resp.Alignment.LLC = cores.IsEmpty() && (len(resp.Aligned.LLC) == 1)
 	if !resp.Alignment.LLC {
 		if resp.Unaligned == nil {
 			resp.Unaligned = &apiv0.UnalignedInfo{}
@@ -98,13 +100,15 @@ func checkNUMA(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet
 			resp.Aligned = apiv0.NewAlignedInfo()
 		}
 		dets := resp.Aligned.NUMA[numaID]
-		dets.CPUs = thisNUMASubset.List()
-		resp.Aligned.NUMA[numaID] = dets
+		if cpus := thisNUMASubset.List(); len(cpus) > 0 {
+			dets.CPUs = cpus
+			resp.Aligned.NUMA[numaID] = dets
+		}
 
 		cores = cores.Difference(thisNUMASubset)
 	}
 
-	resp.Alignment.NUMA = cores.IsEmpty() && (len(rmap.numa) == 1)
+	resp.Alignment.NUMA = cores.IsEmpty() && (len(resp.Aligned.NUMA) == 1)
 	if !resp.Alignment.NUMA {
 		if resp.Unaligned == nil {
 			resp.Unaligned = &apiv0.UnalignedInfo{}
