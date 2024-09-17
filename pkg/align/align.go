@@ -48,7 +48,9 @@ func checkSMT(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet,
 	var coreList []int
 	for _, coreID := range cores.UnsortedList() {
 		phy := rmap.cpuLog2Phy[coreID]
-		coreList = append(coreList, rmap.cpuPhy2Log[phy]...)
+		altCores := rmap.cpuPhy2Log[phy]
+		coreList = append(coreList, altCores...)
+		klog.V(2).InfoS("check SMT alignment", "vcpuID", coreID, "pcpuID", phy, "altCores", altCores)
 	}
 	computedCores := cpuset.New(coreList...)
 
