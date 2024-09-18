@@ -17,13 +17,10 @@
 package cli
 
 import (
-	goflag "flag"
 	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
-
-	"k8s.io/klog/v2"
 
 	"github.com/go-logr/stdr"
 	"github.com/spf13/cobra"
@@ -63,12 +60,7 @@ func NewRootCommand(env *environ.Environ, extraCmds ...NewCommandFunc) *cobra.Co
 	}
 
 	root.PersistentFlags().BoolVarP(&opts.SleepForever, "sleepforever", "S", false, "run and sleep forever after executing the command")
-	// avoid clash with klog's -v
-	root.PersistentFlags().IntVar(&opts.Verbose, "verbose", 0, "log verbosity")
-
-	fs := goflag.NewFlagSet("", goflag.PanicOnError)
-	klog.InitFlags(fs)
-	root.PersistentFlags().AddGoFlagSet(fs)
+	root.PersistentFlags().IntVarP(&opts.Verbose, "verbose", "v", 0, "log verbosity")
 
 	root.AddCommand(
 		NewAlignCommand(env, &opts),

@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"strings"
 
-	"k8s.io/klog/v2"
 	"k8s.io/utils/cpuset"
 
 	"github.com/jaypipes/ghw/pkg/topology"
@@ -50,11 +49,11 @@ func checkSMT(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet,
 		phy := rmap.cpuLog2Phy[coreID]
 		altCores := rmap.cpuPhy2Log[phy]
 		coreList = append(coreList, altCores...)
-		klog.V(2).InfoS("check SMT alignment", "vcpuID", coreID, "pcpuID", phy, "altCores", altCores)
+		env.Log.V(2).Info("check SMT alignment", "vcpuID", coreID, "pcpuID", phy, "altCores", altCores)
 	}
 	computedCores := cpuset.New(coreList...)
 
-	klog.V(2).InfoS("check SMT alignment", "cores", cores.String(), "computedCores", computedCores.String())
+	env.Log.V(2).Info("check SMT alignment", "cores", cores.String(), "computedCores", computedCores.String())
 
 	resp.Alignment.SMT = cores.Equals(computedCores)
 	if !resp.Alignment.SMT {
@@ -166,17 +165,17 @@ func makeRMap(topo *topology.Info) rMap {
 			phys := res.cpuPhy2Log[core.ID]
 			phys = append(phys, core.LogicalProcessors...)
 			res.cpuPhy2Log[core.ID] = phys
-			klog.V(4).InfoS("rmap cpus core -> vpcus", "coreID", core.ID, "vcpuIDs", core.LogicalProcessors)
+			env.Log.V(2).Info("rmap cpus core -> vpcus", "coreID", core.ID, "vcpuIDs", core.LogicalProcessors, "cores", phys)
 
 			for _, lid := range core.LogicalProcessors {
 				res.cpuLog2Phy[lid] = core.ID
-				klog.V(4).InfoS("rmap cpus vcpu -> core", "vcpuID", lid, "coreID", core.ID)
+				env.Log.V(2).Info("rmap cpus vcpu -> core", "vcpuID", lid, "coreID", core.ID)
 			}
 
 			numa := res.numa[node.ID]
 			numa = append(numa, core.LogicalProcessors...)
 			res.numa[node.ID] = numa
-			klog.V(4).InfoS("rmap numa -> vcpus", "numaID", node.ID, "vcpus", numa)
+			env.Log.V(4).Info("rmap numa -> vcpus", "numaID", node.ID, "vcpus", numa)
 		}
 		// TODO: yes, we assume LLC=L3.
 		for _, cache := range node.Caches {
@@ -189,7 +188,7 @@ func makeRMap(topo *topology.Info) rMap {
 				llc = append(llc, int(id))
 			}
 			res.llc[llcID] = llc
-			klog.V(4).InfoS("rmap LLC llcid -> vpcuID", "llcID", llcID, "vcpuIDs", llc)
+			env.Log.V(4).Info("rmap LLC llcid -> vpcuID", "llcID", llcID, "vcpuIDs", llc)
 
 			llcID += 1
 		}
