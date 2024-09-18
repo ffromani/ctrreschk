@@ -18,6 +18,7 @@ package align
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"k8s.io/utils/cpuset"
@@ -162,14 +163,15 @@ func makeRMap(env *environ.Environ, topo *topology.Info) rMap {
 	llcID := 0
 	for _, node := range topo.Nodes {
 		for _, core := range node.Cores {
-			phys := res.cpuPhy2Log[core.ID]
+			coreID, _ := getUniqueCoreID(core.LogicalProcessors)
+			phys := res.cpuPhy2Log[coreID]
 			phys = append(phys, core.LogicalProcessors...)
-			res.cpuPhy2Log[core.ID] = phys
-			env.Log.V(2).Info("rmap cpus core -> vpcus", "coreID", core.ID, "vcpuIDs", core.LogicalProcessors, "cores", phys)
+			res.cpuPhy2Log[coreID] = phys
+			env.Log.V(2).Info("rmap cpus core -> vpcus", "coreID", coreID, "vcpuIDs", core.LogicalProcessors, "cores", phys)
 
 			for _, lid := range core.LogicalProcessors {
-				res.cpuLog2Phy[lid] = core.ID
-				env.Log.V(2).Info("rmap cpus vcpu -> core", "vcpuID", lid, "coreID", core.ID)
+				res.cpuLog2Phy[lid] = coreID
+				env.Log.V(2).Info("rmap cpus vcpu -> core", "vcpuID", lid, "coreID", coreID)
 			}
 
 			numa := res.numa[node.ID]
@@ -195,4 +197,19 @@ func makeRMap(env *environ.Environ, topo *topology.Info) rMap {
 	}
 
 	return res
+}
+
+// getUniqueCoreID computes coreId as the lowest cpuID
+// for a given Threads []int slice. This will assure that coreID's are
+// platform unique (opposite to what cAdvisor reports)
+func getUniqueCoreID(threads []int) (coreID int, err error) {
+	if len(threads) == 0 {
+		return 0, fmt.Errorf("no cpus provided")
+	}
+
+	if len(threads) != cpuset.New(threads...).Size() {
+		return 0, fmt.Errorf("cpus provided are not unique")
+	}
+
+	return slices.Min(threads), nil
 }
