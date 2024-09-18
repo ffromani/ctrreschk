@@ -35,8 +35,9 @@ func DefaultFS() FS {
 }
 
 type Environ struct {
-	Root FS
-	Log  logr.Logger
+	DataPath string
+	Root     FS
+	Log      logr.Logger
 }
 
 func DefaultLog() logr.Logger {

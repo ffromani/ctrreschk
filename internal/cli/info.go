@@ -97,6 +97,9 @@ func NewInfoCommand(env *environ.Environ, opts *Options) *cobra.Command {
 		},
 		Args: cobra.NoArgs,
 	}
+
+	infoCmd.PersistentFlags().StringVarP(&env.DataPath, "machinedata", "M", "", "read fake machine data from path, don't read real data from the system")
+
 	infoCmd.AddCommand(NewInfoCacheCommand(env, opts))
 	return infoCmd
 }

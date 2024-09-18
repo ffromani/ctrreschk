@@ -55,5 +55,8 @@ func NewAlignCommand(env *environ.Environ, opts *Options) *cobra.Command {
 		},
 		Args: cobra.NoArgs,
 	}
+
+	alignCmd.PersistentFlags().StringVarP(&env.DataPath, "machinedata", "M", "", "read fake machine data from path, don't read real data from the system")
+
 	return alignCmd
 }

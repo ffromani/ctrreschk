@@ -18,6 +18,7 @@ package machine
 
 import (
 	"encoding/json"
+	"os"
 	"strings"
 
 	"github.com/ffromani/ctrreschk/pkg/environ"
@@ -37,6 +38,17 @@ func (ma Machine) ToJSON() (string, error) {
 }
 
 func Discover(env *environ.Environ) (Machine, error) {
+	if env.DataPath != "" {
+		data, err := os.ReadFile(env.DataPath)
+		if err != nil {
+			return Machine{}, err
+		}
+		return FromJSON(string(data))
+	}
+	return FromSystem(env)
+}
+
+func FromSystem(env *environ.Environ) (Machine, error) {
 	mc := Machine{}
 
 	cpu, err := cpu.New()

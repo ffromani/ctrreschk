@@ -31,7 +31,7 @@ import (
 )
 
 func Check(env *environ.Environ, container resources.Resources, machine machine.Machine) (apiv0.Allocation, error) {
-	rmap := makeRMap(machine.Topology)
+	rmap := makeRMap(env, machine.Topology)
 	env.Log.V(2).Info("reverse mapping", "rmap", rmap)
 
 	resp := apiv0.Allocation{}
@@ -157,7 +157,7 @@ func newRMap() rMap {
 	}
 }
 
-func makeRMap(topo *topology.Info) rMap {
+func makeRMap(env *environ.Environ, topo *topology.Info) rMap {
 	res := newRMap()
 	llcID := 0
 	for _, node := range topo.Nodes {
