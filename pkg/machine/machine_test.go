@@ -17,10 +17,29 @@
 package machine
 
 import (
+	"fmt"
+	"path/filepath"
+	goruntime "runtime"
 	"testing"
 
 	"github.com/ffromani/ctrreschk/pkg/environ"
 )
+
+func TestDiscoverFromFile(t *testing.T) {
+	cur, err := getCurrentPath()
+	if err != nil {
+		t.Fatalf("failed to get current path: %v", err)
+	}
+	env := environ.New()
+	env.DataPath = filepath.Join(cur, "testdata", "machine_laptop.json")
+	got, err := Discover(env)
+	if err != nil {
+		t.Fatalf("discover error against real machine: %v", err)
+	}
+	if got.CPU == nil || got.Topology == nil {
+		t.Fatalf("missing expected data in machine info CPU=%v Topology=%v", got.CPU, got.Topology)
+	}
+}
 
 func TestDiscoverFundamentals(t *testing.T) {
 	env := environ.New()
@@ -56,4 +75,12 @@ func TestMachineJSONRoundtrip(t *testing.T) {
 	if refJSON != auxJSON {
 		t.Errorf("JSON mismatch, Machines are not equal.\nref=%s\naux=%s", refJSON, auxJSON)
 	}
+}
+
+func getCurrentPath() (string, error) {
+	_, file, _, ok := goruntime.Caller(0)
+	if !ok {
+		return "", fmt.Errorf("cannot retrieve tests directory")
+	}
+	return filepath.Dir(file), nil
 }

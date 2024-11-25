@@ -23,7 +23,13 @@ ctrreschk: outdir
 	CGO_ENABLED=0 go build -v -o _out/ctrreschk cmd/ctrreschk/main.go
 
 test-unit:
-	@go test -cover ./pkg/...
+	@go test -coverprofile=coverage.out ./pkg/...
+
+cover-summary:
+	go tool cover -func=coverage.out
+
+cover-view:
+	go tool cover -html=coverage.out
 
 .PHONY: vet
 vet:
