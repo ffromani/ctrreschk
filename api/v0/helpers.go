@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package v1
+package v0
 
 func NewAlignedInfo() *AlignedInfo {
 	return &AlignedInfo{

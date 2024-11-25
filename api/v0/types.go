@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package v1
+package v0
 
 type ContainerResourcesDetails struct {
 	// CPUs are identified by their virtual cpu ID
