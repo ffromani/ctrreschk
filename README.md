@@ -34,7 +34,7 @@ Example of resource pools:
 ### online help
 
 ```bash
-$ ./_out/ctrreschk 
+$ ./_out/ctrreschk
 Usage:
   ctrreschk [flags]
   ctrreschk [command]
@@ -45,11 +45,12 @@ Available Commands:
   help        Help about any command
   info        show machine properties
   k8s         show properties in kubernetes format
+  pause       sleep forever doing nothing
 
 Flags:
-  -h, --help           help for ctrreschk
-  -S, --sleepforever   run and sleep forever after executing the command
-  -v, --verbose int    log verbosity
+  -h, --help          help for ctrreschk
+  -v, --verbose int   log verbosity
+  -w, --wait          run and wait forever after executing the command
 
 Use "ctrreschk [command] --help" for more information about a command.
 ```
@@ -68,8 +69,8 @@ Flags:
   -M, --machinedata string   read fake machine data from path, don't read real data from the system
 
 Global Flags:
-  -S, --sleepforever   run and sleep forever after executing the command
-  -v, --verbose int    log verbosity
+  -v, --verbose int   log verbosity
+  -w, --wait          run and wait forever after executing the command
 ```
 
 example output on developer's laptop
@@ -77,14 +78,15 @@ example output on developer's laptop
 ```bash
 $ ./_out/ctrreschk align | jq .
 {
-  "alignment": {         <- terse summary
-    "smt": true,         <- all CPUs the container is using are SMT aligned
-    "llc": true,         <- ditto for LLC (uncore)
-    "numa": true         <- ditto for NUMA
+  "alignment": {
+    "smt": true,
+    "llc": true,
+    "numa": true,
+    "memory": true
   },
-  "aligned": {          <- breakdown of aligned resources
-    "llc": {            <- LLC cpus
-      "0": {            <- CPUs pertaining to LLC/Uncore block "0"
+  "aligned": {
+    "llc": {
+      "0": {
         "cpus": [
           0,
           1,
@@ -97,8 +99,8 @@ $ ./_out/ctrreschk align | jq .
         ]
       }
     },
-    "numa": {           <- NUMA cpus
-      "0": {            <- CPUs pertaining to NUMA node "0"
+    "numa": {
+      "0": {
         "cpus": [
           0,
           1,
@@ -109,6 +111,22 @@ $ ./_out/ctrreschk align | jq .
           6,
           7
         ]
+      }
+    },
+    "memory": {
+      "0": {
+        "cpus": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "memoryMiB": 31787,
+        "memoryPercent": 100
       }
     }
   }

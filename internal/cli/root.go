@@ -29,8 +29,8 @@ import (
 )
 
 type Options struct {
-	Verbose      int
-	SleepForever bool
+	Verbose     int
+	WaitForever bool
 }
 
 func ShowHelp(cmd *cobra.Command, args []string) error {
@@ -59,13 +59,14 @@ func NewRootCommand(env *environ.Environ, extraCmds ...NewCommandFunc) *cobra.Co
 		SilenceErrors: true,
 	}
 
-	root.PersistentFlags().BoolVarP(&opts.SleepForever, "sleepforever", "S", false, "run and sleep forever after executing the command")
+	root.PersistentFlags().BoolVarP(&opts.WaitForever, "wait", "w", false, "run and wait forever after executing the command")
 	root.PersistentFlags().IntVarP(&opts.Verbose, "verbose", "v", 0, "log verbosity")
 
 	root.AddCommand(
 		NewAlignCommand(env, &opts),
 		NewInfoCommand(env, &opts),
 		NewK8SCommand(env, &opts),
+		NewPauseCommand(env, &opts),
 	)
 	for _, extraCmd := range extraCmds {
 		root.AddCommand(extraCmd(&opts))
@@ -75,7 +76,7 @@ func NewRootCommand(env *environ.Environ, extraCmds ...NewCommandFunc) *cobra.Co
 }
 
 func MainLoop(opts *Options) error {
-	if !opts.SleepForever {
+	if !opts.WaitForever {
 		return nil
 	}
 	exitSignal := make(chan os.Signal, 1)
