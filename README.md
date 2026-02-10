@@ -114,3 +114,10 @@ $ ./_out/ctrreschk align | jq .
   }
 }
 ```
+
+## APIs
+
+the "API" definition represent the tool output in such a way which is standardized and easily
+consumable by third party tools. It's a formalization of the output contract of the tool.
+The API and therefore the output contract is not final yet and still subject to change (hence v0).
+There is no provision for an API contract for the input, but may be added in the future.
