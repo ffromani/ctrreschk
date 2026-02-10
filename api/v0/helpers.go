@@ -18,8 +18,9 @@ package v0
 
 func NewAlignedInfo() *AlignedInfo {
 	return &AlignedInfo{
-		SMT:  make(map[int]ContainerResourcesDetails),
-		LLC:  make(map[int]ContainerResourcesDetails),
-		NUMA: make(map[int]ContainerResourcesDetails),
+		SMT:    make(map[int]ContainerResourcesDetails),
+		LLC:    make(map[int]ContainerResourcesDetails),
+		NUMA:   make(map[int]ContainerResourcesDetails),
+		Memory: make(map[int]ContainerResourcesDetails),
 	}
 }

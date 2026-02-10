@@ -31,7 +31,8 @@ func TestDiscover(t *testing.T) {
 	testCases := []struct {
 		name        string
 		path        string
-		content     string
+		cpuContent  string
+		memContent  string
 		expectedRes Resources
 		expectedErr bool
 	}{
@@ -41,10 +42,20 @@ func TestDiscover(t *testing.T) {
 			expectedErr: true,
 		},
 		{
-			name:    "simple happy path",
-			content: "0-9",
+			name:       "simple happy path",
+			cpuContent: "0-9",
+			memContent: "0",
 			expectedRes: Resources{
 				CPUs: cpuset.New(0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
+				MEMs: cpuset.New(0),
+			},
+		},
+		{
+			name:       "cpus with missing mems degrades gracefully",
+			cpuContent: "0-3",
+			expectedRes: Resources{
+				CPUs: cpuset.New(0, 1, 2, 3),
+				MEMs: cpuset.New(),
 			},
 		},
 	}
@@ -58,7 +69,7 @@ func TestDiscover(t *testing.T) {
 					},
 					Log: environ.DefaultLog(),
 				}
-			} else if len(tt.content) > 0 {
+			} else if len(tt.cpuContent) > 0 {
 				tmpDir := t.TempDir()
 				env = environ.Environ{
 					Root: environ.FS{
@@ -66,14 +77,21 @@ func TestDiscover(t *testing.T) {
 					},
 					Log: environ.DefaultLog(),
 				}
-				tmpPath := cgroups.CpusetPath(&env)
-				err := os.MkdirAll(filepath.Dir(tmpPath), os.ModePerm)
+				cpuPath := cgroups.CpusetPath(&env)
+				err := os.MkdirAll(filepath.Dir(cpuPath), os.ModePerm)
 				if err != nil {
-					t.Fatalf("cannot prepare the fake data path at %v: %v", tmpPath, err)
+					t.Fatalf("cannot prepare the fake data path at %v: %v", cpuPath, err)
 				}
-				err = os.WriteFile(tmpPath, []byte(tt.content), 0o644)
+				err = os.WriteFile(cpuPath, []byte(tt.cpuContent), 0o644)
 				if err != nil {
-					t.Fatalf("cannot prepare the fake data file at %v: %v", tmpPath, err)
+					t.Fatalf("cannot prepare the fake data file at %v: %v", cpuPath, err)
+				}
+				if len(tt.memContent) > 0 {
+					memPath := cgroups.MemsetPath(&env)
+					err = os.WriteFile(memPath, []byte(tt.memContent), 0o644)
+					if err != nil {
+						t.Fatalf("cannot prepare the fake data file at %v: %v", memPath, err)
+					}
 				}
 			} else {
 				t.Fatalf("neither path or content given; wrong test")
@@ -87,7 +105,10 @@ func TestDiscover(t *testing.T) {
 				t.Fatalf("expected success, got err=%v", err)
 			}
 			if tt.expectedRes.CPUs.Size() > 0 && !got.CPUs.Equals(tt.expectedRes.CPUs) {
-				t.Fatalf("expected Resources %v got %v", tt.expectedRes, got)
+				t.Fatalf("expected CPUs %v got %v", tt.expectedRes.CPUs, got.CPUs)
+			}
+			if !got.MEMs.Equals(tt.expectedRes.MEMs) {
+				t.Fatalf("expected MEMs %v got %v", tt.expectedRes.MEMs, got.MEMs)
 			}
 		})
 	}

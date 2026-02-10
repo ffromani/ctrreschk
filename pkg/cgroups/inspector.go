@@ -29,14 +29,29 @@ import (
 const (
 	CgroupPath = "fs/cgroup"
 	CpusetFile = "cpuset.cpus.effective"
+	MemsetFile = "cpuset.mems.effective"
 )
 
 func CpusetPath(env *environ.Environ) string {
 	return filepath.Join(env.Root.Sys, CgroupPath, CpusetFile)
 }
 
+func MemsetPath(env *environ.Environ) string {
+	return filepath.Join(env.Root.Sys, CgroupPath, MemsetFile)
+}
+
 func Cpuset(env *environ.Environ) (cpuset.CPUSet, error) {
 	data, err := os.ReadFile(CpusetPath(env))
+	if err != nil {
+		return cpuset.New(), err
+	}
+	return cpuset.Parse(strings.TrimSpace(string(data)))
+}
+
+// Memset reads the NUMA memory nodes allowed for the container from cpuset.mems.effective.
+// The format is the same range-list notation used for cpuset.cpus.effective.
+func Memset(env *environ.Environ) (cpuset.CPUSet, error) {
+	data, err := os.ReadFile(MemsetPath(env))
 	if err != nil {
 		return cpuset.New(), err
 	}

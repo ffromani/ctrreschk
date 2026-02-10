@@ -25,6 +25,7 @@ import (
 
 type Resources struct {
 	CPUs cpuset.CPUSet
+	MEMs cpuset.CPUSet
 }
 
 func Discover(env *environ.Environ) (Resources, error) {
@@ -33,7 +34,16 @@ func Discover(env *environ.Environ) (Resources, error) {
 		return Resources{}, err
 	}
 	env.Log.V(2).Info("detected resources", "cpus", cpus)
+
+	mems, err := cgroups.Memset(env)
+	if err != nil {
+		env.Log.V(1).Info("cannot detect memory nodes, skipping", "error", err)
+		mems = cpuset.New()
+	}
+	env.Log.V(2).Info("detected resources", "mems", mems)
+
 	return Resources{
 		CPUs: cpus,
+		MEMs: mems,
 	}, nil
 }

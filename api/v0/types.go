@@ -19,6 +19,12 @@ package v0
 type ContainerResourcesDetails struct {
 	// CPUs are identified by their virtual cpu ID
 	CPUs []int `json:"cpus,omitempty"`
+	// NUMANodes lists the NUMA node IDs involved in unaligned memory allocation
+	NUMANodes []int `json:"numaNodes,omitempty"`
+	// MemoryMiB is the usable memory in MiB available on the relevant NUMA node(s)
+	MemoryMiB int64 `json:"memoryMiB,omitempty"`
+	// MemoryPercent is the percentage of total machine memory on the relevant NUMA node(s)
+	MemoryPercent float64 `json:"memoryPercent,omitempty"`
 	// Hugepages are anonymous
 	Hugepages2Mi int `json:"hugepages2Mi,omitempty"`
 	Hugepages1Gi int `json:"hugepages1Gi,omitempty"`
@@ -33,18 +39,22 @@ type AlignedInfo struct {
 	LLC map[int]ContainerResourcesDetails `json:"llc,omitempty"`
 	// numacellid -> resources
 	NUMA map[int]ContainerResourcesDetails `json:"numa,omitempty"`
+	// numacellid -> resources (memory NUMA nodes matching CPU NUMA nodes)
+	Memory map[int]ContainerResourcesDetails `json:"memory,omitempty"`
 }
 
 type UnalignedInfo struct {
-	SMT  ContainerResourcesDetails `json:"smt,omitempty"`
-	LLC  ContainerResourcesDetails `json:"llc,omitempty"`
-	NUMA ContainerResourcesDetails `json:"numa,omitempty"`
+	SMT    ContainerResourcesDetails `json:"smt,omitempty"`
+	LLC    ContainerResourcesDetails `json:"llc,omitempty"`
+	NUMA   ContainerResourcesDetails `json:"numa,omitempty"`
+	Memory ContainerResourcesDetails `json:"memory,omitempty"`
 }
 
 type Alignment struct {
-	SMT  bool `json:"smt"`
-	LLC  bool `json:"llc"`
-	NUMA bool `json:"numa"`
+	SMT    bool `json:"smt"`
+	LLC    bool `json:"llc"`
+	NUMA   bool `json:"numa"`
+	Memory bool `json:"memory"`
 }
 
 type Allocation struct {

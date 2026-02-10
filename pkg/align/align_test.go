@@ -85,6 +85,79 @@ func TestCheck(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "memory aligned with cpu numa node",
+			res: resources.Resources{
+				CPUs: cpuset.New(0, 16),
+				MEMs: cpuset.New(0),
+			},
+			expectedAlloc: apiv0.Allocation{
+				Alignment: apiv0.Alignment{
+					SMT:    true,
+					LLC:    true,
+					NUMA:   true,
+					Memory: true,
+				},
+				Aligned: &apiv0.AlignedInfo{
+					LLC: map[int]apiv0.ContainerResourcesDetails{
+						0: apiv0.ContainerResourcesDetails{
+							CPUs: []int{0, 16},
+						},
+					},
+					NUMA: map[int]apiv0.ContainerResourcesDetails{
+						0: apiv0.ContainerResourcesDetails{
+							CPUs: []int{0, 16},
+						},
+					},
+					Memory: map[int]apiv0.ContainerResourcesDetails{
+						0: apiv0.ContainerResourcesDetails{
+							CPUs:          []int{0, 16},
+							MemoryMiB:     63705,
+							MemoryPercent: 100.0,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "memory misaligned extra mem node",
+			res: resources.Resources{
+				CPUs: cpuset.New(0, 16),
+				MEMs: cpuset.New(0, 1),
+			},
+			expectedAlloc: apiv0.Allocation{
+				Alignment: apiv0.Alignment{
+					SMT:    true,
+					LLC:    true,
+					NUMA:   true,
+					Memory: false,
+				},
+				Aligned: &apiv0.AlignedInfo{
+					LLC: map[int]apiv0.ContainerResourcesDetails{
+						0: apiv0.ContainerResourcesDetails{
+							CPUs: []int{0, 16},
+						},
+					},
+					NUMA: map[int]apiv0.ContainerResourcesDetails{
+						0: apiv0.ContainerResourcesDetails{
+							CPUs: []int{0, 16},
+						},
+					},
+					Memory: map[int]apiv0.ContainerResourcesDetails{
+						0: apiv0.ContainerResourcesDetails{
+							CPUs:          []int{0, 16},
+							MemoryMiB:     63705,
+							MemoryPercent: 100.0,
+						},
+					},
+				},
+				Unaligned: &apiv0.UnalignedInfo{
+					Memory: apiv0.ContainerResourcesDetails{
+						NUMANodes: []int{0, 1},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {

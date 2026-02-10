@@ -89,3 +89,72 @@ func TestCpuset(t *testing.T) {
 		})
 	}
 }
+
+func TestMemset(t *testing.T) {
+	testCases := []struct {
+		name         string
+		path         string
+		content      string
+		expectedMEMs cpuset.CPUSet
+		expectedErr  bool
+	}{
+		{
+			name:        "non-existent path",
+			path:        "/this/path/does/not/exist",
+			expectedErr: true,
+		},
+		{
+			name:         "single node",
+			content:      "0",
+			expectedMEMs: cpuset.New(0),
+		},
+		{
+			name:         "multiple nodes",
+			content:      "0-1",
+			expectedMEMs: cpuset.New(0, 1),
+		},
+	}
+	for _, tt := range testCases {
+		t.Run(tt.name, func(t *testing.T) {
+			var env environ.Environ
+			if len(tt.path) > 0 {
+				env = environ.Environ{
+					Root: environ.FS{
+						Sys: tt.path,
+					},
+					Log: environ.DefaultLog(),
+				}
+			} else if len(tt.content) > 0 {
+				tmpDir := t.TempDir()
+				env = environ.Environ{
+					Root: environ.FS{
+						Sys: tmpDir,
+					},
+					Log: environ.DefaultLog(),
+				}
+				tmpPath := MemsetPath(&env)
+				err := os.MkdirAll(filepath.Dir(tmpPath), os.ModePerm)
+				if err != nil {
+					t.Fatalf("cannot prepare the fake data path at %v: %v", tmpPath, err)
+				}
+				err = os.WriteFile(tmpPath, []byte(tt.content), 0o644)
+				if err != nil {
+					t.Fatalf("cannot prepare the fake data file at %v: %v", tmpPath, err)
+				}
+			} else {
+				t.Fatalf("neither path or content given; wrong test")
+			}
+
+			got, err := Memset(&env)
+			if tt.expectedErr && err == nil {
+				t.Fatalf("expected error, got success")
+			}
+			if !tt.expectedErr && err != nil {
+				t.Fatalf("expected success, got err=%v", err)
+			}
+			if tt.expectedMEMs.Size() > 0 && !got.Equals(tt.expectedMEMs) {
+				t.Fatalf("expected MEMs %v got %v", tt.expectedMEMs, got)
+			}
+		})
+	}
+}

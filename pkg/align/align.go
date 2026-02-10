@@ -35,11 +35,16 @@ func Check(env *environ.Environ, container resources.Resources, machine machine.
 	rmap := makeRMap(env, machine.Topology)
 	env.Log.V(2).Info("reverse mapping", "rmap", rmap)
 
+	if !container.MEMs.IsEmpty() && rmap.totalMemory <= 0 {
+		return apiv0.Allocation{}, fmt.Errorf("memory nodes assigned but no memory information available from the machine topology")
+	}
+
 	resp := apiv0.Allocation{}
 
 	checkSMT(env, &resp, container.CPUs.Clone(), rmap)
 	checkLLC(env, &resp, container.CPUs.Clone(), rmap)
 	checkNUMA(env, &resp, container.CPUs.Clone(), rmap)
+	checkMemory(env, &resp, container.CPUs.Clone(), container.MEMs.Clone(), rmap)
 
 	return resp, nil
 }
@@ -122,6 +127,67 @@ func checkNUMA(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet
 	}
 }
 
+const bytesPerMiB = 1024 * 1024
+
+func checkMemory(env *environ.Environ, resp *apiv0.Allocation, cpus cpuset.CPUSet, mems cpuset.CPUSet, rmap rMap) {
+	if mems.IsEmpty() {
+		env.Log.V(1).Info("no memory node info available, skipping memory alignment check")
+		return
+	}
+
+	// determine which NUMA nodes the container CPUs belong to
+	cpuNUMANodes := cpuset.New()
+	for numaID := range rmap.numa {
+		numaCPUs := rmap.numa.CPUSet(numaID)
+		if !cpus.Intersection(numaCPUs).IsEmpty() {
+			cpuNUMANodes = cpuNUMANodes.Union(cpuset.New(numaID))
+		}
+	}
+
+	env.Log.V(2).Info("check memory alignment", "cpuNUMANodes", cpuNUMANodes.String(), "mems", mems.String(), "totalMemory", rmap.totalMemory)
+
+	resp.Alignment.Memory = cpuNUMANodes.Equals(mems)
+
+	// report the common NUMA nodes (have both CPUs and memory)
+	commonNodes := cpuNUMANodes.Intersection(mems)
+	for _, numaID := range commonNodes.List() {
+		if resp.Aligned == nil {
+			resp.Aligned = apiv0.NewAlignedInfo()
+		}
+		dets := resp.Aligned.Memory[numaID]
+		numaCPUs := rmap.numa.CPUSet(numaID)
+		if containerCPUs := cpus.Intersection(numaCPUs).List(); len(containerCPUs) > 0 {
+			dets.CPUs = containerCPUs
+		}
+		dets.MemoryMiB = rmap.numaMemory[numaID] / bytesPerMiB
+		dets.MemoryPercent = float64(rmap.numaMemory[numaID]) / float64(rmap.totalMemory) * 100.0
+		resp.Aligned.Memory[numaID] = dets
+	}
+
+	if !resp.Alignment.Memory {
+		if resp.Unaligned == nil {
+			resp.Unaligned = &apiv0.UnalignedInfo{}
+		}
+		resp.Unaligned.Memory.NUMANodes = mems.List()
+		// NUMA nodes in mems but without container CPUs
+		extraMem := mems.Difference(cpuNUMANodes)
+		if !extraMem.IsEmpty() {
+			var extraBytes int64
+			for _, numaID := range extraMem.List() {
+				extraBytes += rmap.numaMemory[numaID]
+			}
+			resp.Unaligned.Memory.MemoryMiB = extraBytes / bytesPerMiB
+			resp.Unaligned.Memory.MemoryPercent = float64(extraBytes) / float64(rmap.totalMemory) * 100.0
+		}
+		// container CPUs on NUMA nodes not in mems (no local memory)
+		extraCPUNUMA := cpuNUMANodes.Difference(mems)
+		for _, numaID := range extraCPUNUMA.List() {
+			numaCPUs := rmap.numa.CPUSet(numaID)
+			resp.Unaligned.Memory.CPUs = append(resp.Unaligned.Memory.CPUs, cpus.Intersection(numaCPUs).List()...)
+		}
+	}
+}
+
 // Reverse ID MAP (PhysicalID|LLCID|NUMAID) -> LogicalIDs
 type ridMap map[int][]int
 
@@ -139,10 +205,12 @@ func (rm ridMap) String() string {
 
 // Resource MAPping
 type rMap struct {
-	cpuLog2Phy map[int]int
-	cpuPhy2Log ridMap
-	llc        ridMap
-	numa       ridMap
+	cpuLog2Phy  map[int]int
+	cpuPhy2Log  ridMap
+	llc         ridMap
+	numa        ridMap
+	numaMemory  map[int]int64 // numaID -> usable bytes
+	totalMemory int64         // sum of all NUMA nodes usable bytes
 }
 
 func (rm rMap) String() string {
@@ -155,6 +223,7 @@ func newRMap() rMap {
 		cpuPhy2Log: make(ridMap),
 		llc:        make(ridMap),
 		numa:       make(ridMap),
+		numaMemory: make(map[int]int64),
 	}
 }
 
@@ -179,6 +248,12 @@ func makeRMap(env *environ.Environ, topo *topology.Info) rMap {
 			res.numa[node.ID] = numa
 			env.Log.V(4).Info("rmap numa -> vcpus", "numaID", node.ID, "vcpus", numa)
 		}
+		if node.Memory != nil {
+			res.numaMemory[node.ID] = node.Memory.TotalUsableBytes
+			res.totalMemory += node.Memory.TotalUsableBytes
+			env.Log.V(4).Info("rmap numa -> memory", "numaID", node.ID, "usableBytes", node.Memory.TotalUsableBytes)
+		}
+
 		// TODO: yes, we assume LLC=L3.
 		for _, cache := range node.Caches {
 			if cache.Level < 3 {
