@@ -5,6 +5,6 @@ COPY . .
 
 RUN make build
 
-FROM alpine:3.23
-COPY --from=builder /go/src/github.com/ffromani/ctrreschk/_out /bin
-ENTRYPOINT ["/bin/ctrreschk", "align"]
+FROM scratch
+COPY --from=builder /go/src/github.com/ffromani/ctrreschk/_out /
+ENTRYPOINT ["/ctrreschk", "-w", "align"]
