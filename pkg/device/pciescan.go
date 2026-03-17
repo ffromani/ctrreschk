@@ -198,7 +198,11 @@ func PCIEDomainsFromFS(lh logr.Logger, sysfs SysFS) ([]PCIEDomain, error) {
 	if err != nil {
 		return nil, err
 	}
-	return slices.Collect(maps.Values(domains)), nil
+	doms := slices.Collect(maps.Values(domains))
+	slices.SortFunc(doms, func(a, b PCIEDomain) int {
+		return strings.Compare(a.Root(), b.Root())
+	})
+	return doms, nil
 }
 
 // isPCIBridge checks if a device is a PCI-to-PCI bridge. The PCIE Roots are a subset of these.

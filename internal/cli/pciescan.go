@@ -50,7 +50,6 @@ func runScan(lh logr.Logger, sysfs device.SysFS) error {
 	if err != nil {
 		return fmt.Errorf("failed to scan the PCIE domains: %w", err)
 	}
-
 	lh.V(4).Info("found PCIE domains", "count", len(domains))
 	for _, dom := range domains {
 		lh.Info("PCIE domain", dom.Loggable()...)
