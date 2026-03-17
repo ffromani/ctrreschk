@@ -67,6 +67,7 @@ func NewRootCommand(env *environ.Environ, extraCmds ...NewCommandFunc) *cobra.Co
 		NewInfoCommand(env, &opts),
 		NewK8SCommand(env, &opts),
 		NewPauseCommand(env, &opts),
+		NewPCIEScanCommand(env, &opts),
 	)
 	for _, extraCmd := range extraCmds {
 		root.AddCommand(extraCmd(&opts))
