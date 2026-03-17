@@ -20,9 +20,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
-
-	"k8s.io/klog/v2"
 
 	"github.com/ffromani/ctrreschk/pkg/device"
 	"github.com/ffromani/ctrreschk/pkg/environ"
@@ -36,7 +35,7 @@ func NewPCIEScanCommand(env *environ.Environ, opts *Options) *cobra.Command {
 		Short: "show pcieroot data",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			sysfs := os.DirFS(env.Root.Sys).(device.SysFS)
-			err := runScan(sysfs)
+			err := runScan(env.Log, sysfs)
 			if err != nil {
 				return err
 			}
@@ -46,23 +45,23 @@ func NewPCIEScanCommand(env *environ.Environ, opts *Options) *cobra.Command {
 	}
 }
 
-func runScan(sysfs device.SysFS) error {
-	domains, err := device.PCIEDomainsFromFS(sysfs)
+func runScan(lh logr.Logger, sysfs device.SysFS) error {
+	domains, err := device.PCIEDomainsFromFS(lh, sysfs)
 	if err != nil {
 		return fmt.Errorf("failed to scan the PCIE domains: %w", err)
 	}
 
-	klog.V(3).Infof("found %d PCIE domains", len(domains))
+	lh.V(4).Info("found PCIE domains", "count", len(domains))
 	for _, dom := range domains {
-		klog.Infof("PCIE domain: %s", dom.String())
+		lh.Info("PCIE domain", dom.Loggable()...)
 	}
 
-	onlineCPUs, err := device.OnlineCPUs(sysfs)
+	onlineCPUs, err := device.OnlineCPUs(lh, sysfs)
 	if err != nil {
 		return fmt.Errorf("failed to get the online CPUs: %w", err)
 	}
 
 	orphans := device.FindOrphanedCPUs(domains, onlineCPUs)
-	klog.V(3).Infof("found %d orphaned CPUs", orphans.Size())
+	lh.V(2).Info("found orphaned CPUs", "count", orphans.Size())
 	return nil
 }

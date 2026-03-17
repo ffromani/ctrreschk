@@ -26,7 +26,7 @@ import (
 	"strconv"
 	"strings"
 
-	"k8s.io/klog/v2"
+	"github.com/go-logr/logr"
 	"k8s.io/utils/cpuset"
 
 	"github.com/ffromani/ctrreschk/internal/deviceattribute"
@@ -45,7 +45,7 @@ func init() {
 	pciAddrRegex = regexp.MustCompile(`^([0-9a-f]{4}):([0-9a-f]{2}):([0-9a-f]{2})\.([0-9a-f]{1})$`)
 }
 
-func OnlineCPUs(sysfs fs.ReadLinkFS) (cpuset.CPUSet, error) {
+func OnlineCPUs(lh logr.Logger, sysfs fs.ReadLinkFS) (cpuset.CPUSet, error) {
 	cpuData, err := fs.ReadFile(sysfs, filepath.Join("devices", "system", "cpu", "online"))
 	if err != nil {
 		return cpuset.New(), err
@@ -54,7 +54,7 @@ func OnlineCPUs(sysfs fs.ReadLinkFS) (cpuset.CPUSet, error) {
 	if err != nil {
 		return cpuset.New(), err
 	}
-	klog.V(2).Infof("System: online CPUs %v", allCPUs.String())
+	lh.V(2).Info("System: online CPUs %v", allCPUs.String())
 	return allCPUs, nil
 }
 
@@ -79,6 +79,10 @@ func (pcd PCIEDomain) Root() string {
 
 func (pcd PCIEDomain) String() string {
 	return fmt.Sprintf("<PCIERoot=%s CPUs=%s NUMANode=%d>", pcd.Root(), pcd.LocalCPUs.String(), pcd.NUMANode)
+}
+
+func (pcd PCIEDomain) Loggable() []any {
+	return []any{"root", pcd.Root(), "localCPUs", pcd.LocalCPUs.String(), "NUMANode", pcd.NUMANode}
 }
 
 type PCIEDevice struct {
@@ -136,7 +140,7 @@ func ScanPCIDevices(sysfs SysFS, processDevice func(PCIEDevice) error) error {
 	return nil
 }
 
-func PCIEDomainsFromFS(sysfs SysFS) ([]PCIEDomain, error) {
+func PCIEDomainsFromFS(lh logr.Logger, sysfs SysFS) ([]PCIEDomain, error) {
 	// we use a map (not a slice) to deduplicate PCIERoot domains.
 	// During the PCIE device iteration, we should ideally perform a precise tracking
 	// and find the PCIE root downstream ports for each domain.
@@ -185,7 +189,8 @@ func PCIEDomainsFromFS(sysfs SysFS) ([]PCIEDomain, error) {
 			NUMANode:     numaNode,
 		}
 		domains[pcd.Root()] = pcd
-		klog.V(2).Infof("PCIE: bridge at %v: %v", pciDev.Address, pcd.String())
+		attrs := append([]any{"bridge", pciDev.Address}, pcd.Loggable()...)
+		lh.V(2).Info("PCIE", attrs...)
 
 		return nil
 	})
