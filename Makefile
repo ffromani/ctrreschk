@@ -35,6 +35,29 @@ cover-view:
 vet:
 	go vet ./...
 
+##@ CI
+
+CLUSTER_NAME?=ctrreschk-ci
+IMAGE_CI?=dev.kind.local/ci/ctrreschk:latest
+
+.PHONY: ci-build-image
+ci-build-image:
+	docker build -t $(IMAGE_CI) -f Containerfile .
+
+.PHONY: ci-kind-setup
+ci-kind-setup: ci-build-image
+	kind create cluster --name $(CLUSTER_NAME) --config hack/ci/kind-ci.yaml
+	kind load docker-image --name $(CLUSTER_NAME) $(IMAGE_CI)
+	kubectl wait --for=condition=Ready nodes --all --timeout=120s
+
+.PHONY: ci-kind-teardown
+ci-kind-teardown:
+	kind delete cluster --name $(CLUSTER_NAME)
+
+.PHONY: test-e2e
+test-e2e:
+	CTRRESCHK_E2E_IMAGE=$(IMAGE_CI) go test -v -count=1 ./test/e2e/...
+
 .PHONY: clean
 clean:
 	@rm -rf _out

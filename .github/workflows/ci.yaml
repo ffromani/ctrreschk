@@ -1,0 +1,52 @@
+name: CI Base
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  GOLANG_VERSION: "1.25"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Set up golang
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GOLANG_VERSION }}
+
+    - name: Check formatting
+      run: ./hack/check-format.sh
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v4
+
+    - name: Set up golang
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GOLANG_VERSION }}
+
+    - name: Verify modules
+      run: go mod verify
+
+    - name: Vetting
+      run: make vet
+
+    - name: Run unit tests
+      run: make test-unit
