@@ -26,9 +26,10 @@ var _ = Describe("ctrreschk smoke test", func() {
 				RestartPolicy: corev1.RestartPolicyNever,
 				Containers: []corev1.Container{
 					{
-						Name:    "ctrreschk",
-						Image:   testImage,
-						Command: []string{"/ctrreschk", "align"},
+						Name:            "ctrreschk",
+						Image:           testImage,
+						ImagePullPolicy: corev1.PullIfNotPresent,
+						Command:         []string{"/ctrreschk", "align"},
 					},
 				},
 			},

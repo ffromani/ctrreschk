@@ -27,9 +27,10 @@ var _ = Describe("ctrreschk alignment", func() {
 				RestartPolicy: corev1.RestartPolicyNever,
 				Containers: []corev1.Container{
 					{
-						Name:    "ctrreschk",
-						Image:   testImage,
-						Command: []string{"/ctrreschk", "align"},
+						Name:            "ctrreschk",
+						Image:           testImage,
+						ImagePullPolicy: corev1.PullIfNotPresent,
+						Command:         []string{"/ctrreschk", "align"},
 						Resources: corev1.ResourceRequirements{
 							Requests: corev1.ResourceList{
 								corev1.ResourceCPU:    resource.MustParse("2"),
