@@ -28,9 +28,13 @@ import (
 	"github.com/ffromani/ctrreschk/pkg/resources"
 )
 
-type AlignOptions struct{}
+type AlignOptions struct {
+	DeviceEnvPrefixes []string
+}
 
 func NewAlignCommand(env *environ.Environ, opts *Options) *cobra.Command {
+	alignOpts := AlignOptions{}
+
 	alignCmd := &cobra.Command{
 		Use:   "align",
 		Short: "show resource alignment properties",
@@ -38,6 +42,9 @@ func NewAlignCommand(env *environ.Environ, opts *Options) *cobra.Command {
 			container, err := resources.Discover(env)
 			if err != nil {
 				return err
+			}
+			if len(alignOpts.DeviceEnvPrefixes) > 0 {
+				container.Devices = resources.DiscoverDevicesFromEnv(env, os.Environ(), alignOpts.DeviceEnvPrefixes)
 			}
 			machine, err := machine.Discover(env)
 			if err != nil {
@@ -57,6 +64,7 @@ func NewAlignCommand(env *environ.Environ, opts *Options) *cobra.Command {
 	}
 
 	alignCmd.PersistentFlags().StringVarP(&env.DataPath, "machinedata", "M", "", "read fake machine data from path, don't read real data from the system")
+	alignCmd.PersistentFlags().StringSliceVar(&alignOpts.DeviceEnvPrefixes, "device-env-prefix", nil, "env var prefixes for device PCI addresses (e.g. SRIOVNETWORK_VF_,PCIDEVICE_)")
 
 	return alignCmd
 }
