@@ -62,3 +62,15 @@ type Allocation struct {
 	Aligned   *AlignedInfo   `json:"aligned,omitempty"`
 	Unaligned *UnalignedInfo `json:"unaligned,omitempty"`
 }
+
+type NUMAMapsNodeInfo struct {
+	Pages   int64 `json:"pages"`
+	SizeKiB int64 `json:"sizeKiB"`
+}
+
+type NUMAMapsInfo struct {
+	Nodes       map[int]NUMAMapsNodeInfo `json:"nodes,omitempty"`
+	LocalPages  int64                    `json:"localPages"`
+	RemotePages int64                    `json:"remotePages"`
+	Local       bool                     `json:"local"`
+}
