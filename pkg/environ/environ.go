@@ -25,12 +25,14 @@ import (
 )
 
 type FS struct {
-	Sys string
+	Sys  string
+	Proc string
 }
 
 func DefaultFS() FS {
 	return FS{
-		Sys: "/sys",
+		Sys:  "/sys",
+		Proc: "/proc",
 	}
 }
 

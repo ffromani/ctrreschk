@@ -64,6 +64,7 @@ func NewRootCommand(env *environ.Environ, extraCmds ...NewCommandFunc) *cobra.Co
 
 	root.AddCommand(
 		NewAlignCommand(env, &opts),
+		NewAlignMemCommand(env, &opts),
 		NewInfoCommand(env, &opts),
 		NewK8SCommand(env, &opts),
 		NewPauseCommand(env, &opts),
