@@ -68,12 +68,12 @@ func TestCheck(t *testing.T) {
 				},
 				Aligned: &apiv0.AlignedInfo{
 					LLC: map[int]apiv0.ContainerResourcesDetails{
-						0: apiv0.ContainerResourcesDetails{
+						0: {
 							CPUs: []int{0},
 						},
 					},
 					NUMA: map[int]apiv0.ContainerResourcesDetails{
-						0: apiv0.ContainerResourcesDetails{
+						0: {
 							CPUs: []int{0},
 						},
 					},
@@ -100,17 +100,17 @@ func TestCheck(t *testing.T) {
 				},
 				Aligned: &apiv0.AlignedInfo{
 					LLC: map[int]apiv0.ContainerResourcesDetails{
-						0: apiv0.ContainerResourcesDetails{
+						0: {
 							CPUs: []int{0, 16},
 						},
 					},
 					NUMA: map[int]apiv0.ContainerResourcesDetails{
-						0: apiv0.ContainerResourcesDetails{
+						0: {
 							CPUs: []int{0, 16},
 						},
 					},
 					Memory: map[int]apiv0.ContainerResourcesDetails{
-						0: apiv0.ContainerResourcesDetails{
+						0: {
 							CPUs:          []int{0, 16},
 							MemoryMiB:     63705,
 							MemoryPercent: 100.0,
@@ -134,17 +134,17 @@ func TestCheck(t *testing.T) {
 				},
 				Aligned: &apiv0.AlignedInfo{
 					LLC: map[int]apiv0.ContainerResourcesDetails{
-						0: apiv0.ContainerResourcesDetails{
+						0: {
 							CPUs: []int{0, 16},
 						},
 					},
 					NUMA: map[int]apiv0.ContainerResourcesDetails{
-						0: apiv0.ContainerResourcesDetails{
+						0: {
 							CPUs: []int{0, 16},
 						},
 					},
 					Memory: map[int]apiv0.ContainerResourcesDetails{
-						0: apiv0.ContainerResourcesDetails{
+						0: {
 							CPUs:          []int{0, 16},
 							MemoryMiB:     63705,
 							MemoryPercent: 100.0,
