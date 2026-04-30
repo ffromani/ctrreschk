@@ -44,17 +44,19 @@ type AlignedInfo struct {
 }
 
 type UnalignedInfo struct {
-	SMT    ContainerResourcesDetails `json:"smt,omitempty"`
-	LLC    ContainerResourcesDetails `json:"llc,omitempty"`
-	NUMA   ContainerResourcesDetails `json:"numa,omitempty"`
-	Memory ContainerResourcesDetails `json:"memory,omitempty"`
+	SMT     ContainerResourcesDetails `json:"smt,omitempty"`
+	LLC     ContainerResourcesDetails `json:"llc,omitempty"`
+	NUMA    ContainerResourcesDetails `json:"numa,omitempty"`
+	Memory  ContainerResourcesDetails `json:"memory,omitempty"`
+	Devices ContainerResourcesDetails `json:"devices,omitempty"`
 }
 
 type Alignment struct {
-	SMT    bool `json:"smt"`
-	LLC    bool `json:"llc"`
-	NUMA   bool `json:"numa"`
-	Memory bool `json:"memory"`
+	SMT     bool  `json:"smt"`
+	LLC     bool  `json:"llc"`
+	NUMA    bool  `json:"numa"`
+	Memory  bool  `json:"memory"`
+	Devices *bool `json:"devices,omitempty"`
 }
 
 type Allocation struct {

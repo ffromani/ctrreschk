@@ -45,8 +45,9 @@ func Check(env *environ.Environ, container resources.Resources, machine machine.
 	checkLLC(env, &resp, container.CPUs.Clone(), rmap)
 	checkNUMA(env, &resp, container.CPUs.Clone(), rmap)
 	checkMemory(env, &resp, container.CPUs.Clone(), container.MEMs.Clone(), rmap)
+	checkDevices(env, &resp, container.CPUs.Clone(), container.Devices, rmap)
 
-	env.Log.V(2).Info("alignment check complete", "smt", resp.Alignment.SMT, "llc", resp.Alignment.LLC, "numa", resp.Alignment.NUMA, "memory", resp.Alignment.Memory)
+	env.Log.V(2).Info("alignment check complete", "smt", resp.Alignment.SMT, "llc", resp.Alignment.LLC, "numa", resp.Alignment.NUMA, "memory", resp.Alignment.Memory, "devices", resp.Alignment.Devices)
 
 	return resp, nil
 }
@@ -192,6 +193,51 @@ func checkMemory(env *environ.Environ, resp *apiv0.Allocation, cpus cpuset.CPUSe
 			resp.Unaligned.Memory.CPUs = append(resp.Unaligned.Memory.CPUs, cpus.Intersection(numaCPUs).List()...)
 		}
 	}
+}
+
+func checkDevices(env *environ.Environ, resp *apiv0.Allocation, cpus cpuset.CPUSet, devices []resources.DeviceInfo, rmap rMap) {
+	if len(devices) == 0 {
+		env.Log.V(1).Info("no devices to check, skipping device alignment check")
+		return
+	}
+
+	cpuNUMANodes := cpuset.New()
+	for numaID := range rmap.numa {
+		numaCPUs := rmap.numa.CPUSet(numaID)
+		if !cpus.Intersection(numaCPUs).IsEmpty() {
+			cpuNUMANodes = cpuNUMANodes.Union(cpuset.New(numaID))
+		}
+	}
+
+	aligned := true
+	for _, dev := range devices {
+		if dev.NUMANode == -1 {
+			env.Log.V(2).Info("device NUMA node unknown, skipping", "pciAddress", dev.PCIAddress)
+			continue
+		}
+
+		env.Log.V(2).Info("check device alignment", "pciAddress", dev.PCIAddress, "deviceNUMA", dev.NUMANode, "cpuNUMANodes", cpuNUMANodes.String())
+
+		if cpuNUMANodes.Contains(dev.NUMANode) {
+			if resp.Aligned == nil {
+				resp.Aligned = apiv0.NewAlignedInfo()
+			}
+			dets := resp.Aligned.NUMA[dev.NUMANode]
+			dets.Devices = append(dets.Devices, dev.PCIAddress)
+			resp.Aligned.NUMA[dev.NUMANode] = dets
+		} else {
+			aligned = false
+			if resp.Unaligned == nil {
+				resp.Unaligned = &apiv0.UnalignedInfo{}
+			}
+			resp.Unaligned.Devices.Devices = append(resp.Unaligned.Devices.Devices, dev.PCIAddress)
+			if !slices.Contains(resp.Unaligned.Devices.NUMANodes, dev.NUMANode) {
+				resp.Unaligned.Devices.NUMANodes = append(resp.Unaligned.Devices.NUMANodes, dev.NUMANode)
+			}
+		}
+	}
+
+	resp.Alignment.Devices = &aligned
 }
 
 // Reverse ID MAP (PhysicalID|LLCID|NUMAID) -> LogicalIDs

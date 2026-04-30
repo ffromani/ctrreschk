@@ -158,6 +158,143 @@ func TestCheck(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "device aligned with cpu numa node",
+			res: resources.Resources{
+				CPUs: cpuset.New(0, 16),
+				MEMs: cpuset.New(0),
+				Devices: []resources.DeviceInfo{
+					{EnvVar: "SRIOVNETWORK_VF_DEV", PCIAddress: "0000:05:10.2", NUMANode: 0},
+				},
+			},
+			expectedAlloc: apiv0.Allocation{
+				Alignment: apiv0.Alignment{
+					SMT:     true,
+					LLC:     true,
+					NUMA:    true,
+					Memory:  true,
+					Devices: boolPtr(true),
+				},
+				Aligned: &apiv0.AlignedInfo{
+					LLC: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs: []int{0, 16},
+						},
+					},
+					NUMA: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs:    []int{0, 16},
+							Devices: []string{"0000:05:10.2"},
+						},
+					},
+					Memory: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs:          []int{0, 16},
+							MemoryMiB:     63705,
+							MemoryPercent: 100.0,
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "device on wrong numa node",
+			res: resources.Resources{
+				CPUs: cpuset.New(0, 16),
+				MEMs: cpuset.New(0),
+				Devices: []resources.DeviceInfo{
+					{EnvVar: "SRIOVNETWORK_VF_DEV", PCIAddress: "0000:05:10.2", NUMANode: 1},
+				},
+			},
+			expectedAlloc: apiv0.Allocation{
+				Alignment: apiv0.Alignment{
+					SMT:     true,
+					LLC:     true,
+					NUMA:    true,
+					Memory:  true,
+					Devices: boolPtr(false),
+				},
+				Aligned: &apiv0.AlignedInfo{
+					LLC: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs: []int{0, 16},
+						},
+					},
+					NUMA: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs: []int{0, 16},
+						},
+					},
+					Memory: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs:          []int{0, 16},
+							MemoryMiB:     63705,
+							MemoryPercent: 100.0,
+						},
+					},
+				},
+				Unaligned: &apiv0.UnalignedInfo{
+					Devices: apiv0.ContainerResourcesDetails{
+						Devices:   []string{"0000:05:10.2"},
+						NUMANodes: []int{1},
+					},
+				},
+			},
+		},
+		{
+			name: "device with unknown numa node skipped",
+			res: resources.Resources{
+				CPUs: cpuset.New(0, 16),
+				Devices: []resources.DeviceInfo{
+					{EnvVar: "SRIOVNETWORK_VF_DEV", PCIAddress: "0000:05:10.2", NUMANode: -1},
+				},
+			},
+			expectedAlloc: apiv0.Allocation{
+				Alignment: apiv0.Alignment{
+					SMT:     true,
+					LLC:     true,
+					NUMA:    true,
+					Devices: boolPtr(true),
+				},
+				Aligned: &apiv0.AlignedInfo{
+					LLC: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs: []int{0, 16},
+						},
+					},
+					NUMA: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs: []int{0, 16},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "no devices means no device alignment field",
+			res: resources.Resources{
+				CPUs: cpuset.New(0, 16),
+			},
+			expectedAlloc: apiv0.Allocation{
+				Alignment: apiv0.Alignment{
+					SMT:  true,
+					LLC:  true,
+					NUMA: true,
+				},
+				Aligned: &apiv0.AlignedInfo{
+					LLC: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs: []int{0, 16},
+						},
+					},
+					NUMA: map[int]apiv0.ContainerResourcesDetails{
+						0: {
+							CPUs: []int{0, 16},
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
@@ -178,6 +315,8 @@ func TestCheck(t *testing.T) {
 		})
 	}
 }
+
+func boolPtr(b bool) *bool { return &b }
 
 func toJSON(v any) string {
 	data, err := json.Marshal(v)

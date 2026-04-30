@@ -23,9 +23,16 @@ import (
 	"github.com/ffromani/ctrreschk/pkg/environ"
 )
 
+type DeviceInfo struct {
+	EnvVar     string
+	PCIAddress string
+	NUMANode   int // -1 if unknown
+}
+
 type Resources struct {
-	CPUs cpuset.CPUSet
-	MEMs cpuset.CPUSet
+	CPUs    cpuset.CPUSet
+	MEMs    cpuset.CPUSet
+	Devices []DeviceInfo
 }
 
 func Discover(env *environ.Environ) (Resources, error) {
