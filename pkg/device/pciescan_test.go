@@ -23,6 +23,7 @@ import (
 	"testing"
 	"testing/fstest"
 
+	"github.com/go-logr/logr/testr"
 	"github.com/google/go-cmp/cmp"
 	resourceapi "k8s.io/api/resource/v1"
 	"k8s.io/utils/cpuset"
@@ -56,7 +57,7 @@ func TestOnlineCPUs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := OnlineCPUs(tt.fs)
+			got, err := OnlineCPUs(testr.New(t), tt.fs)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("expected error, got nil")
@@ -186,7 +187,7 @@ func TestPCIEDomainsFromFS(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := PCIEDomainsFromFS(tt.fs)
+			got, err := PCIEDomainsFromFS(testr.New(t), tt.fs)
 			if tt.wantErr {
 				if err == nil {
 					t.Fatal("expected error, got nil")

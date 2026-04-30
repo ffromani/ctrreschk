@@ -146,11 +146,17 @@ func makeBasePCSysFSFixture() fstest.MapFS {
 		"devices/pci0000:00/0000:00:06.0/local_cpulist": &fstest.MapFile{
 			Data: []byte("0-7\n"),
 		},
+		"devices/pci0000:00/0000:00:06.0/numa_node": &fstest.MapFile{
+			Data: []byte("0\n"),
+		},
 		"devices/pci0000:00/0000:00:07.0/class": &fstest.MapFile{
 			Data: []byte("0x060400\n"),
 		},
 		"devices/pci0000:00/0000:00:07.0/local_cpulist": &fstest.MapFile{
 			Data: []byte("0-7\n"),
+		},
+		"devices/pci0000:00/0000:00:07.0/numa_node": &fstest.MapFile{
+			Data: []byte("0\n"),
 		},
 		"devices/pci0000:00/0000:00:07.2/0000:50:00.0/0000:51:02.0/0000:52:00.0/class": &fstest.MapFile{
 			Data: []byte("0x0c0330\n"),
@@ -164,11 +170,17 @@ func makeBasePCSysFSFixture() fstest.MapFS {
 		"devices/pci0000:00/0000:00:07.2/0000:50:00.0/0000:51:02.0/local_cpulist": &fstest.MapFile{
 			Data: []byte("0-7\n"),
 		},
+		"devices/pci0000:00/0000:00:07.2/0000:50:00.0/0000:51:02.0/numa_node": &fstest.MapFile{
+			Data: []byte("0\n"),
+		},
 		"devices/pci0000:00/0000:00:07.2/0000:50:00.0/0000:51:04.0/class": &fstest.MapFile{
 			Data: []byte("0x060400\n"),
 		},
 		"devices/pci0000:00/0000:00:07.2/0000:50:00.0/0000:51:04.0/local_cpulist": &fstest.MapFile{
 			Data: []byte("0-7\n"),
+		},
+		"devices/pci0000:00/0000:00:07.2/0000:50:00.0/0000:51:04.0/numa_node": &fstest.MapFile{
+			Data: []byte("0\n"),
 		},
 		"devices/pci0000:00/0000:00:07.2/0000:50:00.0/class": &fstest.MapFile{
 			Data: []byte("0x060400\n"),
@@ -176,11 +188,17 @@ func makeBasePCSysFSFixture() fstest.MapFS {
 		"devices/pci0000:00/0000:00:07.2/0000:50:00.0/local_cpulist": &fstest.MapFile{
 			Data: []byte("0-7\n"),
 		},
+		"devices/pci0000:00/0000:00:07.2/0000:50:00.0/numa_node": &fstest.MapFile{
+			Data: []byte("0\n"),
+		},
 		"devices/pci0000:00/0000:00:07.2/class": &fstest.MapFile{
 			Data: []byte("0x060400\n"),
 		},
 		"devices/pci0000:00/0000:00:07.2/local_cpulist": &fstest.MapFile{
 			Data: []byte("0-7\n"),
+		},
+		"devices/pci0000:00/0000:00:07.2/numa_node": &fstest.MapFile{
+			Data: []byte("0\n"),
 		},
 		"devices/pci0000:00/0000:00:08.0/class": &fstest.MapFile{
 			Data: []byte("0x088000\n"),
