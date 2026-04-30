@@ -46,6 +46,8 @@ func Check(env *environ.Environ, container resources.Resources, machine machine.
 	checkNUMA(env, &resp, container.CPUs.Clone(), rmap)
 	checkMemory(env, &resp, container.CPUs.Clone(), container.MEMs.Clone(), rmap)
 
+	env.Log.V(2).Info("alignment check complete", "smt", resp.Alignment.SMT, "llc", resp.Alignment.LLC, "numa", resp.Alignment.NUMA, "memory", resp.Alignment.Memory)
+
 	return resp, nil
 }
 
@@ -78,6 +80,7 @@ func checkLLC(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet,
 		}
 		llcCores := rmap.llc.CPUSet(llcID)
 		thisLLCSubset := cores.Intersection(llcCores)
+		env.Log.V(2).Info("check LLC alignment", "llcID", llcID, "llcCPUs", llcCores.String(), "containerSubset", thisLLCSubset.String())
 		if resp.Aligned == nil {
 			resp.Aligned = apiv0.NewAlignedInfo()
 		}
@@ -91,6 +94,7 @@ func checkLLC(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet,
 	}
 
 	resp.Alignment.LLC = cores.IsEmpty() && (len(resp.Aligned.LLC) == 1)
+	env.Log.V(2).Info("check LLC alignment result", "aligned", resp.Alignment.LLC, "llcCount", len(resp.Aligned.LLC), "remainingCPUs", cores.String())
 	if !resp.Alignment.LLC {
 		if resp.Unaligned == nil {
 			resp.Unaligned = &apiv0.UnalignedInfo{}
@@ -106,6 +110,7 @@ func checkNUMA(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet
 		}
 		numaCores := rmap.numa.CPUSet(numaID)
 		thisNUMASubset := cores.Intersection(numaCores)
+		env.Log.V(2).Info("check NUMA alignment", "numaID", numaID, "numaCPUs", numaCores.String(), "containerSubset", thisNUMASubset.String())
 		if resp.Aligned == nil {
 			resp.Aligned = apiv0.NewAlignedInfo()
 		}
@@ -119,6 +124,7 @@ func checkNUMA(env *environ.Environ, resp *apiv0.Allocation, cores cpuset.CPUSet
 	}
 
 	resp.Alignment.NUMA = cores.IsEmpty() && (len(resp.Aligned.NUMA) == 1)
+	env.Log.V(2).Info("check NUMA alignment result", "aligned", resp.Alignment.NUMA, "numaCount", len(resp.Aligned.NUMA), "remainingCPUs", cores.String())
 	if !resp.Alignment.NUMA {
 		if resp.Unaligned == nil {
 			resp.Unaligned = &apiv0.UnalignedInfo{}

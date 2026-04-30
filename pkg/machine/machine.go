@@ -39,12 +39,14 @@ func (ma Machine) ToJSON() (string, error) {
 
 func Discover(env *environ.Environ) (Machine, error) {
 	if env.DataPath != "" {
+		env.Log.V(2).Info("discovering machine topology", "source", "file", "path", env.DataPath)
 		data, err := os.ReadFile(env.DataPath)
 		if err != nil {
 			return Machine{}, err
 		}
 		return FromJSON(string(data))
 	}
+	env.Log.V(2).Info("discovering machine topology", "source", "system")
 	return FromSystem(env)
 }
 
